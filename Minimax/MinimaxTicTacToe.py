@@ -1,86 +1,113 @@
-BOARD_SIZE = 3
-REWARD = 10
+
+import math
 
 class TicTacToe:
-    def __init__(self, board):
-        # Challenge 1: Initialize the board as a dictionary with keys 1-9 all set to ' '
-        # Set player symbol to 'O' and computer symbol to 'X'
-        self.board = board
-        self.player = 'O'
-        self.computer = 'X'
-
-    def run(self):
-        # Challenge 11: Create the main game loop
-        # - Computer starts first
-        # - Alternate between computer and player moves
-        # - After each move, check if the game has ended (win or draw)
-        # - If game ended, exit the loop and print result
-        pass
+    def __init__(self):
+        self.board = [" " for _ in range(9)]
+        self.human = "H"
+        self.ai = "I"
+        self.current_player = self.human
 
     def print_board(self):
-        # Challenge 2: Print the board in 3 rows and 3 columns
-        # For example:
-        # X | O |  
-        # --+---+--
-        #   | X | O
-        # --+---+--
-        # O |   | X
-        pass
+        print("\nTABLERO")
+        for i in range(3):
+            row = self.board[i*3:(i+1)*3]
+            print(" " + " | ".join(row))
+            if i < 2:
+                print("---|---|---")
+        print()
 
-    def is_cell_free(self, position):
-        # Challenge 3: Return True if the cell at 'position' is empty (' ')
-        # Otherwise, return False
-        pass
+    def is_full(self):
+        return " " not in self.board
 
-    def update_player_position(self, player, position):
-        # Challenge 4: If the cell at 'position' is free, place 'player' symbol there
-        # If the cell is occupied, print an error and ask the player to input again
-        # After updating the board, check if the game ended (win or draw)
-        pass
+    def check_winner(self):
+        combos = [
+            (0, 1, 2), (3, 4, 5), (6, 7, 8),
+            (0, 3, 6), (1, 4, 7), (2, 5, 8),
+            (0, 4, 8), (2, 4, 6)
+        ]
+        for a, b, c in combos:
+            if self.board[a] == self.board[b] == self.board[c] != " ":
+                return self.board[a]
+        return None
 
-    def is_winning(self, player):
-        # Challenge 5: Check if 'player' has 3 in a row horizontally, vertically, or diagonally
-        # Return True if winning condition met, False otherwise
-        pass
+    def make_move(self, index, player):
+        if 0 <= index <= 8 and self.board[index] == " ":
+            self.board[index] = player
+            return True
+        return False
 
-    def is_draw(self):
-        # Challenge 6: Return True if no empty cells remain on the board (all positions filled)
-        # and no player has won
-        pass
+    def minimax(self, is_maximizing):
+        winner = self.check_winner()
+        if winner == self.ai:
+            return 1
+        elif winner == self.human:
+            return -1
+        elif self.is_full():
+            return 0
 
-    def check_game_state(self):
-        # Challenge 7: Print the board and check if the game ended
-        # If player or computer won, print the winner and exit
-        # If draw, print 'Draw!' and exit
-        pass
+        if is_maximizing:
+            best_score = -math.inf
+            for i in range(9):
+                if self.board[i] == " ":
+                    self.board[i] = self.ai
+                    score = self.minimax(False)
+                    self.board[i] = " "
+                    best_score = max(score, best_score)
+            return best_score
+        else:
+            best_score = math.inf
+            for i in range(9):
+                if self.board[i] == " ":
+                    self.board[i] = self.human
+                    score = self.minimax(True)
+                    self.board[i] = " "
+                    best_score = min(score, best_score)
+            return best_score
 
-    def move_player(self):
-        # Challenge 8: Ask the human player to enter a position (1-9)
-        # Validate input is an integer within range and the cell is free
-        # Update the board with player's move
-        pass
+    def best_move(self):
+        best_score = -math.inf
+        move = None
+        for i in range(9):
+            if self.board[i] == " ":
+                self.board[i] = self.ai
+                score = self.minimax(False)
+                self.board[i] = " "
+                if score > best_score:
+                    best_score = score
+                    move = i
+        if move is not None:
+            self.make_move(move, self.ai)
+            print(f"\nLa IA juega en: {move + 1}")
 
-    def move_computer(self):
-        # Challenge 9: Iterate over all free cells on the board
-        # For each cell, simulate placing computer's symbol and calculate minimax score
-        # Choose the cell with the highest minimax score and place the computer's symbol there
-        # After the move, check if the game ended
-        pass
+    def play(self):
+        print("Bienvenido a Tic Tac Toe - Tú (H) vs IA (I)")
+        self.print_board()
+        while True:
+            if self.current_player == self.human:
+                try:
+                    move = int(input("Selecciona una casilla (1-9): ")) - 1
+                    if self.make_move(move, self.human):
+                        self.current_player = self.ai
+                    else:
+                        print("Posición inválida.")
+                        continue
+                except ValueError:
+                    print("Entrada no válida. Usa un número del 1 al 9.")
+                    continue
+            else:
+                self.best_move()
+                self.current_player = self.human
 
-    def minimax(self, depth, is_maximizer):
-        # Challenge 10: Implement recursive minimax algorithm:
-        # - If computer wins, return positive score (REWARD - depth)
-        # - If player wins, return negative score (-REWARD + depth)
-        # - If draw, return 0
-        # - If maximizing (computer's turn), try to maximize score over all possible moves
-        # - If minimizing (player's turn), try to minimize score over all possible moves
-        pass
+            self.print_board()
+            winner = self.check_winner()
+            if winner:
+                print(f"¡Ganador: {winner}!")
+                break
+            elif self.is_full():
+                print("Empate.")
+                break
 
-
-if __name__ == '__main__':
-    # Challenge 1: Initialize empty board dictionary with keys 1 to 9 set to ' '
-    board = {pos: ' ' for pos in range(1, 10)}
-
-    game = TicTacToe(board)
-    # Challenge 11: Start the game loop
-    game.run()
+if __name__ == "__main__":
+    game = TicTacToe()
+    game.play()
